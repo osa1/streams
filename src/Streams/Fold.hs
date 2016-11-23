@@ -1,5 +1,6 @@
-{-# LANGUAGE LambdaCase #-}
-{-# LANGUAGE RankNTypes #-}
+{-# LANGUAGE BangPatterns #-}
+{-# LANGUAGE LambdaCase   #-}
+{-# LANGUAGE RankNTypes   #-}
 
 module Streams.Fold where
 
@@ -18,7 +19,7 @@ fromList lst = Stream push
         iter (x : xs) f = iter xs (step (Just (x, f)))
 
 fold :: (b -> a -> b) -> b -> Stream a -> b
-fold f b (Stream push) =
+fold f !b (Stream push) =
     push (\case Nothing     -> b
                 Just (a, x) -> f x a)
 

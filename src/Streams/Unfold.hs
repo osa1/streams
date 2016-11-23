@@ -1,3 +1,4 @@
+{-# LANGUAGE BangPatterns              #-}
 {-# LANGUAGE ExistentialQuantification #-}
 {-# LANGUAGE TupleSections             #-}
 
@@ -21,8 +22,16 @@ fromList lst = Stream lst step
     step (h : t) = Just (h, t)
 
 fold :: (b -> a -> b) -> b -> Stream a -> b
-fold f b (Stream e step) =
+fold f !b (Stream e step) =
     maybe b (\(a, e') -> fold f (f b a) (Stream e' step)) (step e)
+
+foldM :: Monad m => (b -> a -> m b) -> b -> Stream a -> m b
+foldM f b (Stream e step) =
+    case step e of
+      Nothing      -> return b
+      Just (a, e') -> do
+        b' <- f b a
+        foldM f b' (Stream e' step)
 
 map :: (a -> b) -> Stream a -> Stream b
 map f (Stream e0 step) = Stream e0 (fmap (first f)  . step)
